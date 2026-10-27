@@ -5,6 +5,7 @@
  * @brief  CH455 chip driver
  *         Functionalities of the this file:
  *          + Display config and control functions
+ *          + Keypad scan functions
  **********************************************************************************
  *
  * Copyright (c) 2026 Hossein.M (MIT License)
@@ -691,4 +692,40 @@ CH455_SetMultipleDigit_CHAR(CH455_Handler_t *Handler, const char *Str,
   CH455_StringTo7Seg(Str, DigitData, Count);
   return CH455_SetMultipleDigit(Handler,
                                 (const uint8_t *)DigitData, StartAddr, Count);
+}
+
+
+
+/** 
+ ==================================================================================
+                      ##### Public Keypad Functions #####                         
+ ==================================================================================
+ */
+
+/**
+ * @brief  Read key-press code.
+ * @param  Handler: Pointer to handler
+ * @param  KeyAddress: Pointer to key address. Refer to the datasheet for more information
+ * @param  State: Pointer to key state
+ * @retval CH455_Result_t
+ *         - CH455_OK: Operation was successful.
+ *         - CH455_FAIL: Failed to write.
+ *         - CH455_INVALID_PARAM: Invalid parameter.
+ */
+CH455_Result_t
+CH455_ScanKeys(CH455_Handler_t *Handler, uint8_t *KeyAddress, uint8_t *State)
+{
+  uint8_t Data = 0;
+
+  if (!CH455_CHECK_RES_PLATFORM(CH455_CommandRead(Handler,
+                                                  COMMAND_READ_KEY_PRESS_CODE,
+                                                  &Data)))
+    return CH455_FAIL;
+
+  if (KeyAddress)
+    *KeyAddress = Data & 0x3F;
+  if (State)
+    *State = (Data & 0x40) ? 1 : 0;
+
+  return CH455_OK;
 }
